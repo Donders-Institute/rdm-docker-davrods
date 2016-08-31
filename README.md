@@ -1,5 +1,5 @@
 # rdm-docker-davrods
-The DavRods docker container for DI-RDM
+The [DavRods](https://github.com/UtrechtUniversity/davrods) docker container for DI-RDM
 
 ## Build the contianer
 
