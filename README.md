@@ -4,11 +4,11 @@ The [DavRods](https://github.com/UtrechtUniversity/davrods) docker container for
 ## Build the contianer
 
 ```bash
-$ ./build.sh prod
+$ ./build.sh
 ```
 
 ## Run the container
 
 ```bash
-$ ./run.sh prod 443
+$ ./run.sh `pwd`/dirdm 443
 ```
