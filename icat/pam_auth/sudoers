@@ -1,0 +1,2 @@
+irods   ALL=(ALL)       ALL
+Defaults:irods    !requiretty

@@ -1,0 +1,115 @@
+#!/bin/bash
+
+NOW_S=$( date +%s )
+NOW_D=$( date +"%Y%m%d" )
+NOW_H=$( date )
+LOG=/tmp/otp-cache-${NOW_D}.log
+ERR=/tmp/otp-cache-${NOW_D}.err
+TTL=12
+RENEW=0
+ACT="check"
+
+# list of trusted users without check on their credentials 
+# TODO: get trusted user list from somewhere
+TRUSTED=("irods")
+
+# function to renew a given authentication token in iCAT 
+#  arg 1: the current token
+#  arg 2: TTL of the renewed token
+function icat_token_renew {
+    o_token=$1
+    ttl=$2
+    validto=$(( ${NOW_S} + 3600 *  $ttl ))
+    token=$( echo -n ${PAM_USER}:${PAM_AUTHTOK} | md5sum | awk '{print $1}' )
+
+    echo "[${NOW_H}] ${PAM_USER} token valid until: $( date -d @${validto} )" >> $LOG
+    imeta mod -u ${PAM_USER} authToken ${o_token} v:${token}:${validto}
+
+    return 0
+}
+
+# function to create new authentication token in iCAT 
+#  arg 1: TTL of the token
+function icat_token_create {
+    ttl=$1
+    validto=$(( ${NOW_S} + 3600 *  $ttl ))
+    token=$( echo -n ${PAM_USER}:${PAM_AUTHTOK} | md5sum | awk '{print $1}' )
+
+    echo "[${NOW_H}] ${PAM_USER} token valid until: $( date -d @${validto} )" >> $LOG
+    imeta add -u ${PAM_USER} authToken ${token}:${validto}
+
+    return 0
+}
+
+# function to check authentication token in iCAT
+function icat_token_check {
+
+    token=$( echo -n ${PAM_USER}:${PAM_AUTHTOK} | md5sum | awk '{print $1}' )
+    r=$( iquest "%s:%s" "select USER_NAME, META_USER_ATTR_VALUE where META_USER_ATTR_NAME = 'authToken' and META_USER_ATTR_VALUE like '${token}:%'" )
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+
+    tdata=( $(echo $r | awk -F ':' '{print $1" "$2" "$3}') )
+    if [ ${#tdata[@]} -ne 3 ]; then
+        return 1
+    fi
+
+    dt=$(( ${tdata[2]} - ${NOW_S} ))
+    if [ "${tdata[0]}" == ${PAM_USER} ] && [ $dt -gt 60 ]; then
+        echo "[${NOW_H}] ${PAM_USER} authenticated with valid token" >> $LOG
+        # renew token when the TTL of current token is within the renewal threashold
+        if [ $dt -le ${RENEW} ]; then
+            icat_token_renew ${tdata[1]}:${tdata[2]} ${TTL}
+        fi
+        return 0
+    else
+        return 1
+    fi
+}
+
+## main script
+if [ "${PAM_SERVICE}" == "irods" ] && [ "${PAM_TYPE}" == "auth" ]; then
+
+    # parsing script options 
+    while (( "$#" )); do
+
+        case "$1" in
+            action=*)
+                ACT=$( echo $1 | sed 's/action=//' )
+                ;;
+            ttl=*)
+                TTL=$( echo $1 | sed 's/ttl=//' )
+                ;;
+            renew=*)
+                RENEW=$( echo $1 | sed 's/renew=//' )
+                ;;
+            *)
+                ;;
+        esac
+
+        shift
+    done
+
+    # action
+    case "$ACT" in
+        check)
+            if [[ " ${TRUSTED[@]} " =~ " ${PAM_USER} " ]]; then
+                exit 0
+            else
+                icat_token_check
+                exit $?
+            fi
+            ;;
+        create)
+            icat_token_create ${TTL}
+            exit $?
+            ;;
+        *)
+            exit 1
+    esac
+else
+    # only "auth" type is supported/needed for "irods"
+    echo "[${NOW_H}] type ${PAM_TYPE} not supported" >> $ERR
+    exit 1
+fi

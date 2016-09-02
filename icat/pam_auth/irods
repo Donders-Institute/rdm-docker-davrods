@@ -1,0 +1,17 @@
+## iRODS PAM authentication chain with HOTP and authentication token cached as iRODS user metadata.
+
+# check (and optionally renew) authentication token
+# options:
+#  - action=check: specify the "check" action 
+#  - renew=<SECONDS>: renew the valid token when its lifetime is less than the specified seconds. 
+#  - ttl=<HOURS>: specify the lifetime of the renewed token in hours
+auth sufficient pam_script.so dir=/etc/irods/pam_script action=check renew=600 ttl=12
+
+# OTP authentication mechanism
+auth requisite pam_oath.so usersfile=/etc/irods/users.oath window=1 digits=6
+
+# create new authentication token on success of OTP auth
+# options:
+#  - action=create: specify the "create" action 
+#  - ttl=<HOURS>: specify the lifetime of the created token in hours
+auth optional pam_script.so dir=/etc/irods/pam_script action=create ttl=12
