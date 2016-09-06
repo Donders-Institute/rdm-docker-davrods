@@ -27,4 +27,4 @@ if [ $nf -eq 2 ]; then
     v_davrods=${v_davrods}.0
 fi
 
-docker build --force-rm -t davrods:${v_davrods} --build-arg irods_version=${v_irods} --build-arg davrods_github_tag=${t_davrods} --build-arg davrods_version=${v_davrods} .
+docker build --force-rm -t davrods:${v_davrods} --build-arg irods_version=${v_irods} --build-arg davrods_github_tag=${t_davrods} --build-arg davrods_version=${v_davrods} ../davrods

@@ -36,6 +36,10 @@ RUN touch /etc/irods/users.oath
 COPY ./pam_auth/irods /etc/pam.d/irods
 COPY ./pam_auth/otp_cache /etc/irods/pam_script/pam_script_auth
 COPY ./pam_auth/otp.re /etc/irods/otp.re
+COPY ./pam_auth/server.key /etc/irods/server.key
+COPY ./pam_auth/server.crt /etc/irods/chain.pem
+COPY ./pam_auth/dhparams.pem /etc/irods/dhparams.pem
+COPY ./pam_auth/setup_irods_environment.py /opt/irods/setup_irods_environment.py
 COPY ./pam_auth/sudoers /etc/sudoers.d/irods
 COPY ./pam_auth/cmd/*.sh /var/lib/irods/iRODS/server/bin/cmd/
 COPY ./pam_auth/getUserNextHOTP.r /opt/irods/getUserNextHOTP.r
@@ -43,6 +47,13 @@ COPY ./pam_auth/getUserNextHOTP.r /opt/irods/getUserNextHOTP.r
 RUN chmod a+x /var/lib/irods/iRODS/server/bin/cmd/*.sh
 RUN cp /etc/irods/core.re /etc/irods/core.re.org
 RUN cat /etc/irods/otp.re /etc/irods/core.re.org > /etc/irods/core.re
+
+RUN chmod 0444 /etc/irods/chain.pem /etc/irods/dhparams.pem
+RUN chmod 0400 /etc/irods/server.key
+
+ENV IRODS_SSL_CERT_CHAIN=/etc/irods/chain.pem
+ENV IRODS_SSL_CERT_KEY=/etc/irods/server.key
+ENV IRODS_SSL_DH_PARAMS=/etc/irods/dhparams.pem
 
 EXPOSE 1247
 #EXPOSE 1248

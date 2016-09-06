@@ -18,7 +18,7 @@ service postgresql start
 /opt/irods/config.sh /opt/irods/setup_responses
 #change irods user's irodsEnv file to point to localhost, since it was configured with a transient Docker container's $
 #sed -i 's/^irodsHost.*/irodsHost localhost/' /var/lib/irods/.irods/.irodsEnv
-sed -i 's/^.*"irods_host".*/    "irods_host": "localhost",/' /var/lib/irods/.irods/irods_environment.json
+python /opt/irods/setup_irods_environment.py
 
 # set irods system account password for sudo
 echo -e "${RODS_SUDO_PASSWORD}\n${RODS_SUDO_PASSWORD}" | (passwd irods)

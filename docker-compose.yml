@@ -1,0 +1,24 @@
+version: "2"
+services:
+  davrods:
+    build:
+        context: ./davrods
+        args:
+            - irods_version=4.1.9
+            - davrods_version=1.1.0
+            - davrods_github_tag=1.1
+    image: dc-davrods
+    ports:
+      - "443:443"
+    volumes:
+      - ./davrods/config:/config
+    depends_on:
+      - icat
+  icat:
+    build: ./icat
+    image: dc-icat
+    ports:
+      - "1247:1247"
+    entrypoint:
+      - /opt/irods/bootstrap.sh
+      - demo.123

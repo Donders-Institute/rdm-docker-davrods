@@ -11,7 +11,7 @@ where the <abspath_to_config> is the directory in which all necessary configurat
 
 For example:
 
-    $ $0 1.1 `pwd`/dirdm 8443
+    $ $0 1.1 `pwd`/config 443
 
 EOT
 
