@@ -15,7 +15,7 @@ $ docker-compose -f docker-compose.yml build --force-rm --no-cache
 ### Start the containers
 
 ```bash
-$ docker-compose -f docker-compose.yml run -d
+$ docker-compose -f docker-compose.yml up -d
 ```
 
 The `docker-compose ps` should show two running containers, e.g.
